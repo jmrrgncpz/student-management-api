@@ -14,7 +14,18 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
   Student.init({
-    email: DataTypes.STRING
+    email: {
+      type: DataTypes.STRING,
+      validate: {
+        isEmail: true,
+        notNull: true
+      }
+    },
+    isSuspended: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      notNull: true
+    }
   }, {
     sequelize,
     modelName: 'Student',
