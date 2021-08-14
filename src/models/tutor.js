@@ -8,13 +8,14 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      // this.belongsToMany(models.Student, { through: "Tutors_Students" });
+      this.belongsToMany(models.Student, { through: "Tutors_Students" });
     }
   }
   Tutor.init(
     {
       email: {
         type: DataTypes.STRING,
+        allowNull: false,
         validate: {
           isEmail: true,
           notNull: true
