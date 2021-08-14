@@ -18,13 +18,16 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       validate: {
         isEmail: true,
-        notNull: true
+        notNull: true,
       }
     },
     isSuspended: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
-      notNull: true
+      allowNull: false,
+      validate: {
+        notNull: true
+      }
     }
   }, {
     sequelize,
