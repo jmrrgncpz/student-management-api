@@ -15,3 +15,16 @@ export const getCommonsStudents = {
       ).required()
   })
 }
+
+export const suspend = {
+  body: Joi.object({
+    student: Joi.string().email().required()
+  })
+}
+
+export const receiveNotifications = {
+  body: Joi.object({
+    tutor: Joi.string().email().required(),
+    notification: Joi.string().required()
+  })
+}

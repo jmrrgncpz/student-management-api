@@ -1,5 +1,3 @@
-require("mysql2/node_modules/iconv-lite").encodingExists("foo");
-
 const request = require("supertest");
 const app = require("../testEntry");
 const faker = require("faker");
@@ -138,55 +136,32 @@ describe("Api Controller", () => {
     });
 
     describe("Valid query", () => {
-      describe("with single tutor", () => {
-        let _statusCode, _body;
-        beforeAll(async () => {
-          const { statusCode, body } = await request(app).get(
-            "/api/getcommonsstudents?tutor=tutorken%40gmail.com"
-          );
-          _statusCode = statusCode;
-          _body = body;
-        });
-
-        it("should pass controller validation", done => {
-          expect(_statusCode).toEqual(200);
-          done();
-        });
-
-        it("should return all students of the tutor", done => {
-          expect(Object.values(_body).sort()).toEqual(
-            [
-              "studentA@gmail.com",
-              "studentB@gmail.com",
-              "studentC@gmail.com",
-              "studentD@gmail.com",
-            ].sort()
-          );
-          done();
-        });
+      it("should pass controller validation and retreive all students of one tutor", async (done) => {
+        const { statusCode, body } = await request(app).get(
+          "/api/getcommonsstudents?tutor=tutorken%40gmail.com"
+        );
+        expect(statusCode).toEqual(200);
+        expect(Object.values(body).sort()).toEqual(
+          [
+            "studentA@gmail.com",
+            "studentB@gmail.com",
+            "studentC@gmail.com",
+            "studentD@gmail.com",
+          ].sort()
+        );
+        done();
       });
 
-      describe("with multiple common tutor", () => {
-        let _statusCode, _body;
-        beforeAll(async () => {
-          const { statusCode, body } = await request(app).get(
-            "/api/getcommonsstudents?tutor=tutorben%40gmail.com&tutor=tutorken%40gmail.com"
-          );
-          _statusCode = statusCode;
-          _body = body;
-        })
+      it("should pass controller validation and retrieve common students of multiple tutors", async (done) => {
+        const { statusCode, body } = await request(app).get(
+          "/api/getcommonsstudents?tutor=tutorben%40gmail.com&tutor=tutorken%40gmail.com"
+        );
 
-        it("should pass controll validation", done => {
-          expect(_statusCode).toEqual(200);
-          done();
-        })
-
-        it("should return common students", done => {
-          expect(Object.values(_body).sort()).toEqual(
-            ["studentC@gmail.com", "studentD@gmail.com"].sort()
-          );
-          done();
-        })
+        expect(statusCode).toEqual(200);
+        expect(Object.values(body).sort()).toEqual(
+          ["studentC@gmail.com", "studentD@gmail.com"].sort()
+        );
+        done();
       });
     });
   });
@@ -194,12 +169,25 @@ describe("Api Controller", () => {
   describe("SuspendStudent API", () => {
     describe("Invalid body", () => {
       it("should fail for nonexistent student", async (done) => {
+        const { statusCode, body } = await request(app)
+          .post("/api/suspend")
+          .send({ student: "studentZ@gmail.com" });
+        const { message, details } = body;
+
+        expect(statusCode).toEqual(404);
+        expect(message).toBe("Resource not found");
+        expect(details).toBe("Student does not exist");
         done();
       });
     });
 
     describe("Valid body", () => {
       it("should pass for existing student", async (done) => {
+        const { statusCode } = await request(app)
+          .post("/api/suspend")
+          .send({ student: "studentA@gmail.com" });
+
+        expect(statusCode).toEqual(204);
         done();
       });
     });
@@ -208,28 +196,94 @@ describe("Api Controller", () => {
   describe("ReceiveNotifications API", () => {
     describe("Invalid body", () => {
       it("should fail if tutor is empty", async (done) => {
+        const { statusCode, body } = await request(app)
+          .post("/api/receivenotifications")
+          .send({ tutor: "", notification: "" });
+        const { message, details } = body;
+
+        expect(statusCode).toBe(400);
+        expect(message).toEqual("Validation Failed");
+        expect(details).toEqual([
+          { tutor: '"tutor" is not allowed to be empty' },
+        ]);
         done();
       });
 
       it("should fail if notification is empty", async (done) => {
+        const { statusCode, body } = await request(app)
+          .post("/api/receivenotifications")
+          .send({ tutor: "tutorken@gmail.com", notification: "" });
+        const { message, details } = body;
+
+        expect(statusCode).toBe(400);
+        expect(message).toEqual("Validation Failed");
+        expect(details).toEqual([
+          { notification: '"notification" is not allowed to be empty' },
+        ]);
         done();
       });
     });
 
     describe("Valid body", () => {
       it("should fail if tutor doesnt exist", async (done) => {
+        const { statusCode, body } = await request(app)
+          .post("/api/receivenotifications")
+          .send({ tutor: "tutorzen@gmail.com", notification: "Hello!" });
+        const { details, message } = body;
+
+        expect(statusCode).toBe(404);
+        expect(message).toBe("Resource not found");
+        expect(details).toBe("Tutor does not exist");
         done();
       });
-  
+
       it("should pass and retrieve students that belongs to the tutor", async (done) => {
+        const { statusCode, body } = await request(app)
+          .post("/api/receivenotifications")
+          .send({ tutor: "tutorben@gmail.com", notification: "Hello!" });
+
+        expect(statusCode).toBe(200);
+        expect(Object.values(body).sort()).toEqual(
+          ["studentC@gmail.com", "studentD@gmail.com"].sort()
+        );
         done();
       });
-  
+
       it("should pass and retrieve students that belongs to the tutor and mentioned students", async (done) => {
+        const { statusCode, body } = await request(app)
+          .post("/api/receivenotifications")
+          .send({
+            tutor: "tutorben@gmail.com",
+            notification: "Hello! @studentB@gmail.com",
+          });
+
+        expect(statusCode).toBe(200);
+        expect(Object.values(body).sort()).toEqual(
+          [
+            "studentB@gmail.com",
+            "studentC@gmail.com",
+            "studentD@gmail.com",
+          ].sort()
+        );
         done();
       });
-  
+
       it("should pass and retrieve students that are not suspended only", async (done) => {
+        const { statusCode, body } = await request(app)
+          .post("/api/receivenotifications")
+          .send({
+            tutor: "tutorken@gmail.com",
+            notification: "Hello!",
+          });
+
+        expect(statusCode).toBe(200);
+        expect(Object.values(body).sort()).toEqual(
+          [
+            "studentB@gmail.com",
+            "studentC@gmail.com",
+            "studentD@gmail.com",
+          ].sort()
+        );
         done();
       });
     });

@@ -8,12 +8,15 @@ import * as apiValidator from "../controllers/api.validator";
 const router = express.Router();
 
 // api/register
-// could be named /tutor-student instead as nouns are best representation of a rest resources
-// VERBS such as "register" are more applicable to RPC protocol
-// HTTP method should enough to know what the endpoint will do
 router.post("/register", validate(apiValidator.register, { keyByField: true }), apiController.register);
+
 // api/getcommonsstudents
-// could be named /commons-students instead to comply on rest resources best practice
 router.get("/getcommonsstudents", validate(apiValidator.getCommonsStudents, { keyByField: true }), apiController.getCommonsStudents)
+
+// api/suspend
+router.post("/suspend", validate(apiValidator.suspend, { keyByField: true }), apiController.suspend)
+
+// api/receivenotifications
+router.post("/receivenotifications", validate(apiValidator.receiveNotifications, { keyByField: true }), apiController.receiveNotifications)
 
 module.exports = router;
