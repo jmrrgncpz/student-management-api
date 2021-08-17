@@ -12,6 +12,7 @@ describe("Api Controller", () => {
       it("should fail without tutor ", async (done) => {
         const { statusCode, body } = await request(app)
           .post("/api/register")
+          .set("Content-type", "application/json")
           .send();
         const { message, details } = body;
 
@@ -24,6 +25,7 @@ describe("Api Controller", () => {
       it("should fail without students ", async (done) => {
         const { statusCode, body } = await request(app)
           .post("/api/register")
+          .set("Content-type", "application/json")
           .send({ tutor: "tutorken@gmail.com" });
         const { message, details } = body;
 
@@ -36,6 +38,7 @@ describe("Api Controller", () => {
       it("should fail with students being empty", async (done) => {
         const { statusCode, body } = await request(app)
           .post("/api/register")
+          .set("Content-type", "application/json")
           .send({ tutor: "tutorken@gmail.com", students: [] });
         const { message, details } = body;
 
@@ -50,6 +53,7 @@ describe("Api Controller", () => {
       it("should fail if tutor is not an email", async (done) => {
         const { statusCode, body } = await request(app)
           .post("/api/register")
+          .set("Content-type", "application/json")
           .send({ tutor: "tutorken", students: ["studentA@gmail.com"] });
         const { message, details } = body;
 
@@ -62,6 +66,7 @@ describe("Api Controller", () => {
       it("should fail if students are not in email format", async (done) => {
         const { statusCode, body } = await request(app)
           .post("/api/register")
+          .set("Content-type", "application/json")
           .send({ tutor: "tutorken@gmail.com", students: ["studentA"] });
         const { message, details } = body;
 
@@ -76,6 +81,7 @@ describe("Api Controller", () => {
       it("should pass for new tutor and students", async (done) => {
         const { statusCode } = await request(app)
           .post("/api/register")
+          .set("Content-type", "application/json")
           .send({
             tutor: "tutorken@gmail.com",
             students: ["studentA@gmail.com", "studentB@gmail.com"],
@@ -87,6 +93,7 @@ describe("Api Controller", () => {
       it("should pass for existing tutor and new students", async (done) => {
         const { statusCode } = await request(app)
           .post("/api/register")
+          .set("Content-type", "application/json")
           .send({
             tutor: "tutorken@gmail.com",
             students: ["studentC@gmail.com", "studentD@gmail.com"],
@@ -98,6 +105,7 @@ describe("Api Controller", () => {
       it("should pass for new tutor and old students", async (done) => {
         const { statusCode } = await request(app)
           .post("/api/register")
+          .set("Content-type", "application/json")
           .send({
             tutor: "tutorben@gmail.com",
             students: ["studentC@gmail.com", "studentD@gmail.com"],
@@ -136,19 +144,33 @@ describe("Api Controller", () => {
     });
 
     describe("Valid query", () => {
+      it("should pass controller validation but return a 404 for non-existent tutor", async (done) => {
+        const { statusCode, body } = await request(app).get(
+          "/api/getcommonsstudents?tutor=tutorzen%40gmail.com&tutor=tutorken%40gmail.com&tutor=tutorden%40gmail.com"
+        );
+        const { message, details } = body;
+
+        expect(statusCode).toBe(404);
+        expect(message).toBe("Resource not found");
+        expect(details).toBe(
+          "The following tutor/s do not exist: tutorzen@gmail.com, tutorden@gmail.com."
+        );
+        done();
+      });
+
       it("should pass controller validation and retreive all students of one tutor", async (done) => {
         const { statusCode, body } = await request(app).get(
           "/api/getcommonsstudents?tutor=tutorken%40gmail.com"
         );
         expect(statusCode).toEqual(200);
-        expect(Object.values(body).sort()).toEqual(
-          [
+        expect(body).toEqual({
+          students: [
             "studentA@gmail.com",
             "studentB@gmail.com",
             "studentC@gmail.com",
             "studentD@gmail.com",
-          ].sort()
-        );
+          ].sort(),
+        });
         done();
       });
 
@@ -158,9 +180,9 @@ describe("Api Controller", () => {
         );
 
         expect(statusCode).toEqual(200);
-        expect(Object.values(body).sort()).toEqual(
-          ["studentC@gmail.com", "studentD@gmail.com"].sort()
-        );
+        expect(body).toEqual({
+          students: ["studentC@gmail.com", "studentD@gmail.com"].sort(),
+        });
         done();
       });
     });
@@ -171,6 +193,7 @@ describe("Api Controller", () => {
       it("should fail for nonexistent student", async (done) => {
         const { statusCode, body } = await request(app)
           .post("/api/suspend")
+          .set("Content-type", "application/json")
           .send({ student: "studentZ@gmail.com" });
         const { message, details } = body;
 
@@ -185,6 +208,7 @@ describe("Api Controller", () => {
       it("should pass for existing student", async (done) => {
         const { statusCode } = await request(app)
           .post("/api/suspend")
+          .set("Content-type", "application/json")
           .send({ student: "studentA@gmail.com" });
 
         expect(statusCode).toEqual(204);
@@ -198,6 +222,7 @@ describe("Api Controller", () => {
       it("should fail if tutor is empty", async (done) => {
         const { statusCode, body } = await request(app)
           .post("/api/receivenotifications")
+          .set("Content-type", "application/json")
           .send({ tutor: "", notification: "" });
         const { message, details } = body;
 
@@ -212,6 +237,7 @@ describe("Api Controller", () => {
       it("should fail if notification is empty", async (done) => {
         const { statusCode, body } = await request(app)
           .post("/api/receivenotifications")
+          .set("Content-type", "application/json")
           .send({ tutor: "tutorken@gmail.com", notification: "" });
         const { message, details } = body;
 
@@ -228,6 +254,7 @@ describe("Api Controller", () => {
       it("should fail if tutor doesnt exist", async (done) => {
         const { statusCode, body } = await request(app)
           .post("/api/receivenotifications")
+          .set("Content-type", "application/json")
           .send({ tutor: "tutorzen@gmail.com", notification: "Hello!" });
         const { details, message } = body;
 
@@ -240,50 +267,53 @@ describe("Api Controller", () => {
       it("should pass and retrieve students that belongs to the tutor", async (done) => {
         const { statusCode, body } = await request(app)
           .post("/api/receivenotifications")
+          .set("Content-type", "application/json")
           .send({ tutor: "tutorben@gmail.com", notification: "Hello!" });
 
         expect(statusCode).toBe(200);
-        expect(Object.values(body).sort()).toEqual(
-          ["studentC@gmail.com", "studentD@gmail.com"].sort()
-        );
+        expect(body).toEqual({
+          recipients: ["studentC@gmail.com", "studentD@gmail.com"].sort(),
+        });
         done();
       });
 
       it("should pass and retrieve students that belongs to the tutor and mentioned students", async (done) => {
         const { statusCode, body } = await request(app)
           .post("/api/receivenotifications")
+          .set("Content-type", "application/json")
           .send({
             tutor: "tutorben@gmail.com",
             notification: "Hello! @studentB@gmail.com",
           });
 
         expect(statusCode).toBe(200);
-        expect(Object.values(body).sort()).toEqual(
-          [
+        expect(body).toEqual({
+          recipients: [
             "studentB@gmail.com",
             "studentC@gmail.com",
             "studentD@gmail.com",
-          ].sort()
-        );
+          ].sort(),
+        });
         done();
       });
 
       it("should pass and retrieve students that are not suspended only", async (done) => {
         const { statusCode, body } = await request(app)
           .post("/api/receivenotifications")
+          .set("Content-type", "application/json")
           .send({
             tutor: "tutorken@gmail.com",
             notification: "Hello!",
           });
 
         expect(statusCode).toBe(200);
-        expect(Object.values(body).sort()).toEqual(
-          [
+        expect(body).toEqual({
+          recipients: [
             "studentB@gmail.com",
             "studentC@gmail.com",
             "studentD@gmail.com",
-          ].sort()
-        );
+          ].sort(),
+        });
         done();
       });
     });

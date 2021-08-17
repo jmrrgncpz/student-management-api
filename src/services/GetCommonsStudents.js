@@ -35,7 +35,9 @@ class GetCommonsStudents {
         });
 
         const commonStudentEmails = commonStudents.map(cs => cs.email);
-        return commonStudentEmails;
+        return {
+            students: commonStudentEmails.sort()
+        };
     }
 }
 

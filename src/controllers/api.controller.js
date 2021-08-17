@@ -1,3 +1,4 @@
+import _ from "lodash";
 import { successResponse, errorResponse } from "../helpers";
 import RegisterStudents from "../services/RegisterStudents";
 import GetCommonsStudents from "../services/GetCommonsStudents";
@@ -22,6 +23,36 @@ export const getCommonsStudents = async (req, res) => {
     const tutorEmails = Array.isArray(req.query.tutor)
       ? req.query.tutor
       : [req.query.tutor];
+
+    // find tutors
+    const tutorFindResult = tutorEmails.map((tutorEmail) =>
+      new FindTutorByEmail(tutorEmail).call()
+    );
+
+    const existingTutorEmails = (await Promise.all(tutorFindResult))
+      .filter((t) => !_.isNil(t))
+      .map((t) => t.email);
+    const nonExistingTutorEmails = _.difference(
+      tutorEmails,
+      existingTutorEmails
+    );
+
+    // return a 404 if a non-existent tutor is found
+    if (!_.isEmpty(nonExistingTutorEmails)) {
+      return successResponse(
+        req,
+        res,
+        {
+          message: "Resource not found",
+          details:
+            "The following tutor/s do not exist: " +
+            nonExistingTutorEmails.join(", ") +
+            ".",
+        },
+        404
+      );
+    }
+
     const getCommonStudents = new GetCommonsStudents(tutorEmails);
     const commonStudentEmails = await getCommonStudents.call();
 

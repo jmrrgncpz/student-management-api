@@ -16,7 +16,8 @@ class ReceiveNotifications {
       .map((email) => email.substring(1));
 
     // merge and get unique
-    return _.uniq(_.concat(tutorStudentEmails, mentionedStudentEmails));
+    const uniqueEmails = _.uniq(_.concat(tutorStudentEmails, mentionedStudentEmails));
+    return { recipients: uniqueEmails.sort() };
   }
 }
 
