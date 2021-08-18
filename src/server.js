@@ -1,9 +1,11 @@
 require("@babel/register");
+const cors = require("cors");
 const app = require("./app");
 
 const setUpExpress = () => {
+  app.use(cors());
+  
   const port = process.env.APP_PORT || 3000;
-
   const server = app.listen(port, () => {
     console.log(`App running on port ${port}`);
   });
