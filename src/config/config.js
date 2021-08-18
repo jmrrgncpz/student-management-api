@@ -5,6 +5,7 @@ const x = {
     database: process.env.DB_NAME,
     host: process.env.DB_HOST,
     dialect: process.env.DB_DIALECT,
+    port: process.env.DB_PORT
   },
   test: {
     username: process.env.DB_USER,
@@ -12,6 +13,7 @@ const x = {
     database: process.env.DB_NAME,
     host: process.env.DB_HOST,
     dialect: process.env.DB_DIALECT,
+    port: process.env.DB_PORT
   },
   production: {
     username: process.env.DB_USER,
@@ -19,6 +21,7 @@ const x = {
     database: process.env.DB_NAME,
     host: process.env.DB_HOST,
     dialect: process.env.DB_DIALECT,
+    port: process.env.DB_PORT
   },
 };
 module.exports = x;
