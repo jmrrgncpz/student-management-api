@@ -1,4 +1,5 @@
 # student-management-api
+Hosted in **https://lt-student-management-api.herokuapp.com/**
 
 ## Software
 The following software are used and are required for the project to run locally. Installation of each will not be discussed on this guide.
